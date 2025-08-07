@@ -51,7 +51,7 @@ export default function SignupPage() {
         name: name,
         email: user.email,
         department: "Unassigned",
-        role: "user",
+        role: email === "admin123@gmail.com" ? "admin" : "user",
         points: 0,
         badges: [],
       });

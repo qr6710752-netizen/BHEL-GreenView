@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ThumbsUp, MessageCircle, PlusCircle, Loader2 } from "lucide-react";
-import { collection, query, orderBy, Timestamp } from "firebase/firestore";
+import { collection, query, orderBy, Timestamp, where, getDoc, doc } from "firebase/firestore";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { db, auth } from "@/lib/firebase";
 import { NewSuggestionDialog } from "@/components/initiatives/new-suggestion-dialog";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export type Initiative = {
@@ -31,10 +31,29 @@ export type Initiative = {
 export default function InitiativesPage() {
   const [user] = useAuthState(auth);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [initiativesQuery, setInitiativesQuery] = useState<any>(null);
 
-  const initiativesRef = collection(db, "suggestions");
-  const q = query(initiativesRef, orderBy("createdAt", "desc"));
-  const [initiatives, loading, error] = useCollectionData(q, {
+  useEffect(() => {
+    const setupQuery = async () => {
+      if (user) {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.data();
+        const initiativesRef = collection(db, "suggestions");
+
+        if (userData?.role === 'admin') {
+          // Admin sees all suggestions
+          setInitiativesQuery(query(initiativesRef, orderBy("createdAt", "desc")));
+        } else {
+          // Regular user sees only their own suggestions
+          setInitiativesQuery(query(initiativesRef, where("authorId", "==", user.uid), orderBy("createdAt", "desc")));
+        }
+      }
+    };
+    setupQuery();
+  }, [user]);
+
+  const [initiatives, loading, error] = useCollectionData(initiativesQuery, {
     idField: 'id',
   });
 
@@ -54,7 +73,7 @@ export default function InitiativesPage() {
         </NewSuggestionDialog>
       </div>
 
-      {loading && (
+      {(loading || !initiativesQuery) && (
         <div className="flex justify-center mt-8">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
