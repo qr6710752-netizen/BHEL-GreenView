@@ -50,7 +50,10 @@ export default function InitiativesPage() {
         }
       }
     };
-    setupQuery();
+    
+    if(user) {
+        setupQuery();
+    }
   }, [user]);
 
   const [initiatives, loading, error] = useCollectionData(initiativesQuery, {
@@ -116,6 +119,16 @@ export default function InitiativesPage() {
               </CardFooter>
             </Card>
           ))}
+        </div>
+      )}
+
+      {!loading && initiatives?.length === 0 && (
+        <div className="text-center py-12">
+            <p className="text-muted-foreground">You haven't submitted any initiatives yet.</p>
+            <Button className="mt-4" onClick={() => setIsDialogOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Submit Your First Suggestion
+            </Button>
         </div>
       )}
     </main>
