@@ -33,6 +33,7 @@ type Comment = {
     text: string;
     author: string;
     authorId: string;
+    authorAvatar?: string;
     createdAt: any;
 };
 
@@ -92,6 +93,7 @@ export default function InitiativeDetailPage() {
             text: newComment,
             author: userData?.name || "Anonymous",
             authorId: user.uid,
+            authorAvatar: userData?.avatar || null,
             createdAt: serverTimestamp()
         });
 
@@ -218,7 +220,7 @@ export default function InitiativeDetailPage() {
                         return (
                             <div className="flex gap-3" key={commentDoc.id}>
                                 <Avatar>
-                                    <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="profile picture"/>
+                                    <AvatarImage src={comment.authorAvatar || `https://placehold.co/40x40.png`} data-ai-hint="profile picture"/>
                                     <AvatarFallback>{getInitials(comment.author)}</AvatarFallback>
                                 </Avatar>
                                 <div>
