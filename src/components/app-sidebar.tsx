@@ -19,6 +19,7 @@ import {
   LogOut,
   Leaf,
   User,
+  BrainCircuit
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { auth } from "@/lib/firebase";
@@ -46,7 +47,12 @@ const menuItems = [
     label: "Anomaly Detection",
     icon: ShieldAlert,
   },
-    {
+  {
+    href: "/eco-quiz",
+    label: "Eco Quiz",
+    icon: BrainCircuit,
+  },
+  {
     href: "/profile",
     label: "Profile",
     icon: User,
