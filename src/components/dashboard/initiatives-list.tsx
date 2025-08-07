@@ -7,27 +7,33 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const initiatives = [
-  {
-    title: "Install LED Lighting",
+    {
+    title: "Switch to Renewable Energy Wind Power",
     status: "In Progress",
-    department: "Maintenance",
+    department: "Facilities",
   },
   {
-    title: "Paper Waste Reduction",
+    title: "Paper Waste Reduction Initiative",
     status: "Completed",
     department: "Administration",
   },
   {
-    title: "Rainwater Harvesting",
-    status: "Proposed",
-    department: "Facilities",
-  },
-   {
-    title: "Optimize HVAC System",
+    title: "Company-Wide Recycling Program",
     status: "In Progress",
-    department: "Engineering",
+    department: "Operations",
+  },
+  {
+    title: "Energy-Efficient Lighting Upgrade",
+    status: "Completed",
+    department: "Maintenance",
+  },
+  {
+    title: "Water Conservation in Restrooms",
+    status: "Proposed",
+    department: "Human Resources",
   },
 ];
 
@@ -63,7 +69,9 @@ export function InitiativesList() {
             </li>
           ))}
         </ul>
-        <Button variant="link" className="p-0 h-auto mt-4">View all initiatives</Button>
+        <Button variant="link" className="p-0 h-auto mt-4" asChild>
+          <Link href="/initiatives">View all initiatives</Link>
+        </Button>
       </CardContent>
     </Card>
   );

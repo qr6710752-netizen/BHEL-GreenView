@@ -6,13 +6,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy } from "lucide-react";
+import { Trophy, Medal, Award } from "lucide-react";
 import { Button } from "../ui/button";
+import Link from "next/link";
 
 const leaderboard = [
   { name: "Priya Singh", points: 2450, avatar: "PS" },
   { name: "Ravi Sharma", points: 2100, avatar: "RS" },
   { name: "Anil Kumar", points: 1850, avatar: "AK" },
+  { name: "Sunita Devi", points: 1700, avatar: "SD" },
+  { name: "Vijay Rathod", points: 1550, avatar: "VR" },
 ];
 
 export function LeaderboardCard() {
@@ -26,8 +29,11 @@ export function LeaderboardCard() {
         <ul className="space-y-4">
           {leaderboard.map((user, index) => (
             <li key={index} className="flex items-center gap-4">
-              <span className="font-bold text-lg w-5">
-                {index === 0 ? <Trophy className="w-5 h-5 text-yellow-500" /> : index + 1}
+              <span className="font-bold text-lg w-6 text-center">
+                 {index === 0 && <Trophy className="w-5 h-5 text-yellow-500" />}
+                 {index === 1 && <Medal className="w-5 h-5 text-gray-400" />}
+                 {index === 2 && <Award className="w-5 h-5 text-yellow-700" />}
+                 {index > 2 && index + 1}
               </span>
               <Avatar>
                 <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="profile picture"/>
@@ -40,7 +46,9 @@ export function LeaderboardCard() {
             </li>
           ))}
         </ul>
-         <Button variant="link" className="p-0 h-auto mt-4">View full leaderboard</Button>
+         <Button variant="link" className="p-0 h-auto mt-4" asChild>
+          <Link href="/leaderboard">View full leaderboard</Link>
+         </Button>
       </CardContent>
     </Card>
   );
