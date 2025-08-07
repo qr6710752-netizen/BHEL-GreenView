@@ -59,7 +59,12 @@ export function EcoQuizChallenge() {
   const currentQuestion = quizQuestions[currentQuestionIndex];
   const isCorrect = selectedOption === currentQuestion.answer;
 
-  const handleNext = async () => {
+  const handleSelectOption = (option: string) => {
+    if (showFeedback) return;
+    setSelectedOption(option);
+  }
+
+  const handleNext = () => {
     if (!selectedOption) {
       toast({ variant: 'destructive', title: 'Please select an answer.' });
       return;
@@ -71,46 +76,44 @@ export function EcoQuizChallenge() {
       setScore(prev => prev + currentQuestion.points);
     }
     
-    // Wait for a moment to show feedback
     setTimeout(() => {
-        setShowFeedback(false);
-        setSelectedOption(null);
-        if (currentQuestionIndex < quizQuestions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        } else {
-            finishQuiz();
-        }
+      setShowFeedback(false);
+      setSelectedOption(null);
+      if (currentQuestionIndex < quizQuestions.length - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
+      } else {
+        finishQuiz();
+      }
     }, 1500);
   };
   
   const finishQuiz = async () => {
-      setIsSubmitting(true);
-      let finalScore = score;
-      if (isCorrect) {
-        finalScore += currentQuestion.points;
-      }
+    setIsSubmitting(true);
+    // The score state is updated after the feedback timeout, 
+    // so we calculate the final score directly here.
+    const finalScore = score + (isCorrect ? currentQuestion.points : 0);
 
-      if (user) {
-          try {
-              const userRef = doc(db, 'users', user.uid);
-              await updateDoc(userRef, {
-                  points: increment(finalScore)
-              });
-              toast({ title: 'Quiz Completed!', description: `You've earned ${finalScore} points!` });
-          } catch (error: any) {
-              toast({ variant: 'destructive', title: 'Error saving score', description: error.message });
-          }
-      }
-      setScore(finalScore);
-      setIsFinished(true);
-      setIsSubmitting(false);
+    if (user) {
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, {
+                points: increment(finalScore)
+            });
+            toast({ title: 'Quiz Completed!', description: `You've earned ${finalScore} points!` });
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error saving score', description: error.message });
+        }
+    }
+    setScore(finalScore);
+    setIsFinished(true);
+    setIsSubmitting(false);
   }
 
   const handleRestart = () => {
-      setCurrentQuestionIndex(0);
-      setSelectedOption(null);
-      setScore(0);
-      setIsFinished(false);
+    setCurrentQuestionIndex(0);
+    setSelectedOption(null);
+    setScore(0);
+    setIsFinished(false);
   }
 
   if (isFinished) {
@@ -134,7 +137,6 @@ export function EcoQuizChallenge() {
     );
   }
 
-
   return (
     <Card>
       <CardHeader>
@@ -144,14 +146,16 @@ export function EcoQuizChallenge() {
       <CardContent>
         <RadioGroup
           value={selectedOption || ''}
-          onValueChange={setSelectedOption}
+          onValueChange={handleSelectOption}
           className="space-y-4"
           disabled={showFeedback}
         >
           {currentQuestion.options.map((option, index) => {
             const isSelected = selectedOption === option;
-            const feedbackClass = showFeedback && isSelected
-              ? (isCorrect ? 'bg-green-100 border-green-500' : 'bg-red-100 border-red-500')
+            const isAnswer = currentQuestion.answer === option;
+
+            const feedbackClass = showFeedback && (isSelected || isAnswer)
+              ? (isAnswer ? 'bg-green-100 border-green-500' : 'bg-red-100 border-red-500')
               : '';
               
             return (
@@ -162,11 +166,8 @@ export function EcoQuizChallenge() {
               >
                 <RadioGroupItem value={option} id={`option-${index}`} />
                 <span>{option}</span>
-                {showFeedback && isSelected && (
-                    isCorrect 
-                        ? <CheckCircle className="ml-auto h-5 w-5 text-green-600" />
-                        : <XCircle className="ml-auto h-5 w-5 text-red-600" />
-                )}
+                {showFeedback && (isCorrect && isSelected) && <CheckCircle className="ml-auto h-5 w-5 text-green-600" />}
+                {showFeedback && (!isCorrect && isSelected) && <XCircle className="ml-auto h-5 w-5 text-red-600" />}
               </Label>
             );
           })}
