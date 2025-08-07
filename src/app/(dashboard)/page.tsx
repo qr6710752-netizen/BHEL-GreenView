@@ -1,3 +1,6 @@
+
+"use client";
+
 import { PageHeader } from "@/components/page-header";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { EnergyChart } from "@/components/dashboard/energy-chart";
