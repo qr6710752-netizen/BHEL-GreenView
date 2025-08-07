@@ -1,28 +1,27 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can read their own user document
+    
+    // Users can create their own profile, and only they can update it.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth.uid == userId;
+      allow read, update: if request.auth.uid == userId;
     }
 
-    // Authenticated users can read from collections.
-    // This is a placeholder, you should refine these rules.
+    // Suggestions can be created by any authenticated user.
+    // Admins can read all suggestions, users can only read their own.
     match /suggestions/{suggestionId} {
-      allow read, list: if request.auth != null;
+       allow create: if request.auth != null;
+       allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' 
+                  || request.auth.uid == resource.data.authorId;
+       allow update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Leaderboard is public readable for any authenticated user.
     match /leaderboards/{leaderboardId} {
-      allow read, list: if request.auth != null;
-    }
-
-    // You might want to lock down other collections further.
-    // For example, only admins can write to certain fields.
-    match /{document=**} {
-      allow read, write: if false;
+        allow read: if request.auth != null;
+        allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }
