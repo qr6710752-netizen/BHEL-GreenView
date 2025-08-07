@@ -19,7 +19,7 @@ import {
   LogOut,
   Leaf,
   User,
-  BrainCircuit
+  Gamepad2
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { auth } from "@/lib/firebase";
@@ -48,9 +48,9 @@ const menuItems = [
     icon: ShieldAlert,
   },
   {
-    href: "/eco-quiz",
-    label: "Eco Quiz",
-    icon: BrainCircuit,
+    href: "/games",
+    label: "Games",
+    icon: Gamepad2,
   },
   {
     href: "/profile",
@@ -92,7 +92,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname.startsWith(item.href) && (item.href === "/" ? pathname === "/" : true)}
                 tooltip={{ children: item.label }}
               >
                 <a href={item.href}>
