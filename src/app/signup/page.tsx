@@ -22,22 +22,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Leaf, Loader2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-
-const mockUsers = [
-  { name: "Priya Singh", email: "priya.singh@example.com", department: "Engineering" },
-  { name: "Ravi Sharma", email: "ravi.sharma@example.com", department: "Marketing" },
-  { name: "Anil Kumar", email: "anil.kumar@example.com", department: "Operations" },
-];
-
-const DEFAULT_MOCK_PASSWORD = "password123";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isMockLoading, setIsMockLoading] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -89,49 +79,6 @@ export default function SignupPage() {
       setIsLoading(false);
     }
   };
-  
-  const handleCreateMockUser = async (mockUser: typeof mockUsers[0]) => {
-      setIsMockLoading(mockUser.email);
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, mockUser.email, DEFAULT_MOCK_PASSWORD);
-        const user = userCredential.user;
-
-        await updateProfile(user, {
-            displayName: mockUser.name
-        });
-
-        const userRef = doc(db, "users", user.uid);
-        await setDoc(userRef, {
-            uid: user.uid,
-            name: mockUser.name,
-            email: mockUser.email,
-            department: mockUser.department,
-            role: "user",
-            points: Math.floor(Math.random() * 2500) + 500, // Assign random points
-            badges: [],
-        });
-        
-        toast({
-            title: "Mock Account Created!",
-            description: `${mockUser.name}'s account is ready. You can now log in.`,
-        });
-
-      } catch (error: any) {
-          let errorMessage = "An unexpected error occurred.";
-          if (error.code === 'auth/email-already-in-use') {
-              errorMessage = "This mock account already exists. Please log in.";
-          } else {
-              errorMessage = error.message;
-          }
-          toast({
-              variant: "destructive",
-              title: "Creation Failed",
-              description: errorMessage,
-          });
-      } finally {
-          setIsMockLoading(null);
-      }
-  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -165,7 +112,7 @@ export default function SignupPage() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    disabled={isLoading || !!isMockLoading}
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -177,7 +124,7 @@ export default function SignupPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading || !!isMockLoading}
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -188,10 +135,10 @@ export default function SignupPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading || !!isMockLoading}
+                    disabled={isLoading}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading || !!isMockLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
@@ -204,28 +151,6 @@ export default function SignupPage() {
               <Link href="/login" className="underline">
                 Login
               </Link>
-            </div>
-            <Separator className="my-6" />
-            <div className="space-y-4">
-                <h3 className="text-center text-sm font-medium text-muted-foreground">Or create a mock account</h3>
-                <div className="grid grid-cols-1 gap-2">
-                    {mockUsers.map(mock => (
-                        <Button 
-                            key={mock.email} 
-                            variant="outline" 
-                            onClick={() => handleCreateMockUser(mock)}
-                            disabled={isLoading || !!isMockLoading}
-                        >
-                             {isMockLoading === mock.email && (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            )}
-                            Create {mock.name}
-                        </Button>
-                    ))}
-                </div>
-                <p className="text-xs text-center text-muted-foreground">
-                    This directly creates the account. The default password is "{DEFAULT_MOCK_PASSWORD}".
-                </p>
             </div>
           </CardContent>
         </Card>
