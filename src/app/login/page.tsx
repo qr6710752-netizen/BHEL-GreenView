@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -8,8 +9,10 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  UserCredential,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,11 +34,31 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const createUserProfileIfNotExists = async (userCred: UserCredential) => {
+    const user = userCred.user;
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      // User is new, create a document for them
+      await setDoc(userRef, {
+        uid: user.uid,
+        name: user.displayName || user.email?.split("@")[0] || "New User",
+        email: user.email,
+        department: "Unassigned",
+        role: "user",
+        points: 0,
+        badges: [],
+      });
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await createUserProfileIfNotExists(userCredential);
       router.push("/");
     } catch (error: any) {
       toast({
@@ -52,7 +75,8 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      await createUserProfileIfNotExists(userCredential);
       router.push("/");
     } catch (error: any) {
       toast({
