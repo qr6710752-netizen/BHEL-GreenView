@@ -1,7 +1,7 @@
 
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrainCircuit } from "lucide-react";
+import { BrainCircuit, Power } from "lucide-react";
 import Link from "next/link";
 
 const games = [
@@ -10,6 +10,12 @@ const games = [
         description: "Test your sustainability knowledge and earn points!",
         href: "/games/eco-quiz",
         icon: <BrainCircuit className="h-8 w-8 text-primary" />,
+    },
+    {
+        title: "Energy Saver",
+        description: "Turn off devices and save virtual energy!",
+        href: "/games/energy-saver",
+        icon: <Power className="h-8 w-8 text-primary" />,
     }
 ]
 
