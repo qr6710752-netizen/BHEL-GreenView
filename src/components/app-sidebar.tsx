@@ -20,7 +20,6 @@ import {
   Leaf,
   User,
   Gamepad2,
-  Sprout,
   Target,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -53,11 +52,6 @@ const menuItems = [
     href: "/games",
     label: "Games",
     icon: Gamepad2,
-  },
-  {
-    href: "/virtual-garden",
-    label: "Virtual Garden",
-    icon: Sprout,
   },
   {
     href: "/challenges",
