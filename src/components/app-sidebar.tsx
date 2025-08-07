@@ -19,7 +19,8 @@ import {
   LogOut,
   Leaf,
   User,
-  Gamepad2
+  Gamepad2,
+  Puzzle
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { auth } from "@/lib/firebase";
