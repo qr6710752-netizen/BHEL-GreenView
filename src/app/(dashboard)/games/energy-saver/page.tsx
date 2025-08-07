@@ -24,7 +24,7 @@ export default function EnergySaverPage() {
         <Power className="h-4 w-4 text-primary" />
         <AlertTitle className="text-primary">Be Quick!</AlertTitle>
         <AlertDescription className="text-primary/80">
-          Click on the powered-on devices to turn them off and score points. The faster you are, the higher your score!
+          Select a difficulty and click on the powered-on devices to turn them off and score points. The faster you are, the higher your score!
         </AlertDescription>
       </Alert>
 
