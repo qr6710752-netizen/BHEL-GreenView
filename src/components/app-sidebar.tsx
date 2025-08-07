@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -17,6 +18,7 @@ import {
   ShieldAlert,
   LogOut,
   Leaf,
+  User,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { auth } from "@/lib/firebase";
@@ -43,6 +45,11 @@ const menuItems = [
     href: "/anomaly-detection",
     label: "Anomaly Detection",
     icon: ShieldAlert,
+  },
+    {
+    href: "/profile",
+    label: "Profile",
+    icon: User,
   },
 ];
 
