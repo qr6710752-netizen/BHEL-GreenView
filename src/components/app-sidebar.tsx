@@ -20,7 +20,8 @@ import {
   Leaf,
   User,
   Gamepad2,
-  Sprout
+  Sprout,
+  Target,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { auth } from "@/lib/firebase";
@@ -57,6 +58,11 @@ const menuItems = [
     href: "/virtual-garden",
     label: "Virtual Garden",
     icon: Sprout,
+  },
+  {
+    href: "/challenges",
+    label: "Missions",
+    icon: Target,
   },
   {
     href: "/profile",
