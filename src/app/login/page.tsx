@@ -101,10 +101,16 @@ export default function LoginPage() {
         await createUserProfileIfNotExists(userCredential);
         router.push("/");
     } catch (error: any) {
+        let errorMessage = "An unexpected error occurred.";
+        if (error.code === 'auth/operation-not-allowed') {
+            errorMessage = "Anonymous sign-in is not enabled. Please enable it in your Firebase console under Authentication > Sign-in method.";
+        } else {
+            errorMessage = error.message;
+        }
          toast({
             variant: "destructive",
             title: "Guest Login Failed",
-            description: error.message,
+            description: errorMessage,
         });
     } finally {
         setIsGuestLoading(false);
