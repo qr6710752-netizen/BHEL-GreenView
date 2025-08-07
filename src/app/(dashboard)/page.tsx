@@ -5,7 +5,6 @@ import { PageHeader } from "@/components/page-header";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { EnergyChart } from "@/components/dashboard/energy-chart";
 import { WasteChart } from "@/components/dashboard/waste-chart";
-import { InitiativesList } from "@/components/dashboard/initiatives-list";
 import { LeaderboardCard } from "@/components/dashboard/leaderboard-card";
 import { TrendingUp, Trash2, Cloud, Zap } from "lucide-react";
 
@@ -46,10 +45,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="grid gap-6 mt-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <InitiativesList />
-          </div>
-          <div>
+          <div className="lg:col-span-3">
             <LeaderboardCard />
           </div>
         </div>

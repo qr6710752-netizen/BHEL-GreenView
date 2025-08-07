@@ -13,7 +13,6 @@ import {
 } from "./ui/sidebar";
 import {
   LayoutDashboard,
-  Lightbulb,
   Trophy,
   ShieldAlert,
   LogOut,
@@ -32,11 +31,6 @@ const menuItems = [
     href: "/",
     label: "Dashboard",
     icon: LayoutDashboard,
-  },
-  {
-    href: "/initiatives",
-    label: "Initiatives",
-    icon: Lightbulb,
   },
   {
     href: "/leaderboard",
