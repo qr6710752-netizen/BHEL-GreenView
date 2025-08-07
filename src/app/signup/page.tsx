@@ -30,11 +30,14 @@ const mockUsers = [
   { name: "Anil Kumar", email: "anil.kumar@example.com", department: "Operations" },
 ];
 
+const DEFAULT_MOCK_PASSWORD = "password123";
+
 export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("password123"); // Default password for mock accounts
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isMockLoading, setIsMockLoading] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -57,9 +60,9 @@ export default function SignupPage() {
         uid: user.uid,
         name: name,
         email: user.email,
-        department: "Unassigned", // This will be overwritten if a mock user is selected
+        department: "Unassigned",
         role: email === "admin123@gmail.com" ? "admin" : "user",
-        points: Math.floor(Math.random() * 2000), // Assign random points for testing
+        points: 0,
         badges: [],
       });
       
@@ -71,19 +74,63 @@ export default function SignupPage() {
       router.push("/login");
 
     } catch (error: any) {
+      let errorMessage = "An unexpected error occurred.";
+      if (error.code === 'auth/email-already-in-use') {
+          errorMessage = "This email is already registered. Please log in instead.";
+      } else {
+          errorMessage = error.message;
+      }
       toast({
         variant: "destructive",
         title: "Sign Up Failed",
-        description: error.message,
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
     }
   };
   
-  const handleMockUserClick = (mockUser: typeof mockUsers[0]) => {
-      setName(mockUser.name);
-      setEmail(mockUser.email);
+  const handleCreateMockUser = async (mockUser: typeof mockUsers[0]) => {
+      setIsMockLoading(mockUser.email);
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, mockUser.email, DEFAULT_MOCK_PASSWORD);
+        const user = userCredential.user;
+
+        await updateProfile(user, {
+            displayName: mockUser.name
+        });
+
+        const userRef = doc(db, "users", user.uid);
+        await setDoc(userRef, {
+            uid: user.uid,
+            name: mockUser.name,
+            email: mockUser.email,
+            department: mockUser.department,
+            role: "user",
+            points: Math.floor(Math.random() * 2500) + 500, // Assign random points
+            badges: [],
+        });
+        
+        toast({
+            title: "Mock Account Created!",
+            description: `${mockUser.name}'s account is ready. You can now log in.`,
+        });
+
+      } catch (error: any) {
+          let errorMessage = "An unexpected error occurred.";
+          if (error.code === 'auth/email-already-in-use') {
+              errorMessage = "This mock account already exists. Please log in.";
+          } else {
+              errorMessage = error.message;
+          }
+          toast({
+              variant: "destructive",
+              title: "Creation Failed",
+              description: errorMessage,
+          });
+      } finally {
+          setIsMockLoading(null);
+      }
   };
 
   return (
@@ -118,7 +165,7 @@ export default function SignupPage() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || !!isMockLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -130,7 +177,7 @@ export default function SignupPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || !!isMockLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -141,10 +188,10 @@ export default function SignupPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || !!isMockLoading}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading || !!isMockLoading}>
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
@@ -163,13 +210,21 @@ export default function SignupPage() {
                 <h3 className="text-center text-sm font-medium text-muted-foreground">Or create a mock account</h3>
                 <div className="grid grid-cols-1 gap-2">
                     {mockUsers.map(mock => (
-                        <Button key={mock.email} variant="outline" onClick={() => handleMockUserClick(mock)}>
+                        <Button 
+                            key={mock.email} 
+                            variant="outline" 
+                            onClick={() => handleCreateMockUser(mock)}
+                            disabled={isLoading || !!isMockLoading}
+                        >
+                             {isMockLoading === mock.email && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
                             Create {mock.name}
                         </Button>
                     ))}
                 </div>
                 <p className="text-xs text-center text-muted-foreground">
-                    This will fill the form. The default password is "password123".
+                    This directly creates the account. The default password is "{DEFAULT_MOCK_PASSWORD}".
                 </p>
             </div>
           </CardContent>
