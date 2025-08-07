@@ -1,23 +1,82 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Leaf } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Leaf, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push("/");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Google Login Failed",
+        description: error.message,
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-primary/20">
-                    <Leaf className="w-8 h-8 text-primary" />
-                </div>
-                <h1 className="text-3xl font-bold text-foreground">
-                    BHEL GreenView
-                </h1>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-primary/20">
+              <Leaf className="w-8 h-8 text-primary" />
             </div>
+            <h1 className="text-3xl font-bold text-foreground">
+              BHEL GreenView
+            </h1>
+          </div>
         </div>
         <Card>
           <CardHeader className="space-y-1 text-center">
@@ -27,30 +86,68 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m@example.com" required />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="#"
-                    className="ml-auto inline-block text-sm underline"
-                  >
-                    Forgot your password?
-                  </Link>
+            <form onSubmit={handleLogin}>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading || isGoogleLoading}
+                  />
                 </div>
-                <Input id="password" type="password" required />
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      href="#"
+                      className="ml-auto inline-block text-sm underline"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading || isGoogleLoading}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Login
+                </Button>
               </div>
-              <Button type="submit" className="w-full">
-                Login
-              </Button>
-              <Button variant="outline" className="w-full">
-                Login with Google
-              </Button>
+            </form>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
             </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleLogin}
+              disabled={isLoading || isGoogleLoading}
+            >
+              {isGoogleLoading && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Login with Google
+            </Button>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link href="#" className="underline">

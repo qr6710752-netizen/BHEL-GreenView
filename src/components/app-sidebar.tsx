@@ -19,6 +19,9 @@ import {
   Leaf,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { auth } from "@/lib/firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { useRouter } from "next/navigation";
 
 const menuItems = [
   {
@@ -45,6 +48,18 @@ const menuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const [user] = useAuthState(auth);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    auth.signOut();
+    router.push('/login');
+  };
+
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('');
+  }
 
   return (
     <>
@@ -78,21 +93,23 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter>
-        <div className="flex items-center gap-3">
-            <Avatar>
-                <AvatarImage src="https://placehold.co/40x40.png" alt="User Avatar" data-ai-hint="profile picture" />
-                <AvatarFallback>AD</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                <span className="text-sm font-medium text-foreground">Admin User</span>
-                <span className="text-xs text-muted-foreground">admin@bhel.in</span>
-            </div>
-             <SidebarMenuButton asChild size="icon" className="ml-auto w-8 h-8 group-data-[collapsible=icon]:hidden" variant="ghost">
-                <a href="#">
-                    <LogOut />
-                </a>
-             </SidebarMenuButton>
-        </div>
+        {user && (
+          <div className="flex items-center gap-3">
+              <Avatar>
+                  <AvatarImage src={user.photoURL ?? `https://placehold.co/40x40.png`} alt="User Avatar" data-ai-hint="profile picture" />
+                  <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+                  <span className="text-sm font-medium text-foreground">{user.displayName || "User"}</span>
+                  <span className="text-xs text-muted-foreground">{user.email}</span>
+              </div>
+               <SidebarMenuButton asChild size="icon" className="ml-auto w-8 h-8 group-data-[collapsible=icon]:hidden" variant="ghost" onClick={handleLogout}>
+                  <a href="#">
+                      <LogOut />
+                  </a>
+               </SidebarMenuButton>
+          </div>
+        )}
       </SidebarFooter>
     </>
   );
