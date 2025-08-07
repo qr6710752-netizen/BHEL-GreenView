@@ -26,10 +26,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { analyzeInitiative, AnalyzeInitiativeOutput } from '@/ai/flows/analyze-initiative';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Separator } from '../ui/separator';
 
 const formSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters.'),
@@ -46,6 +50,8 @@ export function NewSuggestionDialog({ children, open, onOpenChange }: NewSuggest
   const [user] = useAuthState(auth);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalyzeInitiativeOutput | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,6 +60,29 @@ export function NewSuggestionDialog({ children, open, onOpenChange }: NewSuggest
       description: '',
     },
   });
+  
+  const handleAnalyze = async () => {
+    const { title, description } = form.getValues();
+    if (!title || !description) {
+        toast({
+            variant: "destructive",
+            title: "Title and description required",
+            description: "Please fill out the title and description before analyzing.",
+        });
+        return;
+    }
+    
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+    try {
+        const result = await analyzeInitiative({ title, description });
+        setAnalysisResult(result);
+    } catch(e: any) {
+        toast({ variant: "destructive", title: "Analysis failed", description: e.message });
+    } finally {
+        setIsAnalyzing(false);
+    }
+  }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) {
@@ -70,8 +99,18 @@ export function NewSuggestionDialog({ children, open, onOpenChange }: NewSuggest
         const userSnap = await getDoc(userRef);
         const userData = userSnap.data();
 
+        let descriptionWithAnalysis = values.description;
+        if (analysisResult) {
+            descriptionWithAnalysis += `\n\n--- AI Analysis ---\n`;
+            descriptionWithAnalysis += `Potential Impact: ${analysisResult.impact}\n`;
+            descriptionWithAnalysis += `Potential Benefits:\n- ${analysisResult.benefits.join('\n- ')}\n`;
+            descriptionWithAnalysis += `Suggested Metrics:\n- ${analysisResult.metrics.join('\n- ')}\n`;
+        }
+
+
         await addDoc(collection(db, 'suggestions'), {
-            ...values,
+            title: values.title,
+            description: descriptionWithAnalysis,
             author: userData?.name || user.displayName || 'Anonymous',
             authorId: user.uid,
             department: userData?.department || 'Unassigned',
@@ -80,6 +119,7 @@ export function NewSuggestionDialog({ children, open, onOpenChange }: NewSuggest
             comments: 0,
             progress: 0,
             createdAt: serverTimestamp(),
+            ...(analysisResult && { analysis: analysisResult }) // Store structured data too
         });
         
         // Award points to the user for submitting an idea
@@ -92,6 +132,7 @@ export function NewSuggestionDialog({ children, open, onOpenChange }: NewSuggest
             description: 'Thank you for your contribution. You have earned 10 points!',
         });
         form.reset();
+        setAnalysisResult(null);
         onOpenChange(false);
     } catch (error: any) {
       toast({
@@ -103,13 +144,21 @@ export function NewSuggestionDialog({ children, open, onOpenChange }: NewSuggest
       setIsSubmitting(false);
     }
   };
+  
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+        form.reset();
+        setAnalysisResult(null);
+    }
+    onOpenChange(isOpen);
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Submit a Green Initiative</DialogTitle>
           <DialogDescription>
@@ -148,6 +197,49 @@ export function NewSuggestionDialog({ children, open, onOpenChange }: NewSuggest
                 </FormItem>
               )}
             />
+            
+            <Separator />
+            
+            <div>
+                 <Button type="button" variant="outline" onClick={handleAnalyze} disabled={isAnalyzing}>
+                    {isAnalyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wand2 className="mr-2 h-4 w-4" />}
+                    Analyze Idea with AI
+                 </Button>
+            </div>
+            
+            {analysisResult && (
+                <Card className="bg-primary/5 border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="flex items-center text-primary text-lg">
+                           <Sparkles className="mr-2 h-5 w-5"/> AI Analysis
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm">
+                       <div>
+                         <p className="font-semibold">Potential Impact</p>
+                         <Badge 
+                            variant={analysisResult.impact === 'High' ? 'default' : 'secondary'}
+                            className={analysisResult.impact === 'High' ? 'bg-primary text-primary-foreground' : ''}
+                         >
+                            {analysisResult.impact}
+                        </Badge>
+                       </div>
+                       <div>
+                          <p className="font-semibold">Potential Benefits</p>
+                          <ul className="list-disc pl-5 text-muted-foreground">
+                            {analysisResult.benefits.map(b => <li key={b}>{b}</li>)}
+                          </ul>
+                       </div>
+                        <div>
+                          <p className="font-semibold">Suggested Metrics</p>
+                          <ul className="list-disc pl-5 text-muted-foreground">
+                            {analysisResult.metrics.map(m => <li key={m}>{m}</li>)}
+                          </ul>
+                       </div>
+                    </CardContent>
+                </Card>
+            )}
+
             <DialogFooter>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
