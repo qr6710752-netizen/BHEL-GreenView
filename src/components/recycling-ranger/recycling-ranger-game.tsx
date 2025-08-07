@@ -142,7 +142,7 @@ export function RecyclingRangerGame() {
             <CardHeader>
                 <CardTitle>Game Over!</CardTitle>
                 <CardDescription>Well done, Ranger!</CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent className="text-center">
                 <Award className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
                 <p className="text-2xl font-bold">Your Score: {score}</p>
