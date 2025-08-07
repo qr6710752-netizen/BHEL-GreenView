@@ -56,7 +56,12 @@ export default function SignupPage() {
         badges: [],
       });
       
-      router.push("/");
+      toast({
+        title: "Sign Up Successful",
+        description: "Please login with your new account.",
+      });
+
+      router.push("/login");
 
     } catch (error: any) {
       toast({
