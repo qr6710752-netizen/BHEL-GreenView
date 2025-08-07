@@ -28,37 +28,82 @@ export type Initiative = {
   createdAt: Timestamp;
 };
 
+const mockInitiatives: Initiative[] = [
+    {
+        id: '1',
+        title: 'Switch to Renewable Energy Wind Power',
+        author: 'Priya Singh',
+        authorId: 'user001',
+        department: 'Facilities',
+        description: 'Proposal to switch our primary energy source to wind power by partnering with a local provider. This will significantly reduce our carbon footprint.',
+        status: 'In Progress',
+        progress: 60,
+        votes: 152,
+        comments: 18,
+        createdAt: Timestamp.fromDate(new Date('2023-10-15T09:00:00')),
+    },
+    {
+        id: '2',
+        title: 'Paper Waste Reduction Initiative',
+        author: 'Ravi Sharma',
+        authorId: 'user002',
+        department: 'Administration',
+        description: 'A company-wide initiative to reduce paper consumption by 50% through promoting digital documents and double-sided printing.',
+        status: 'Completed',
+        progress: 100,
+        votes: 210,
+        comments: 25,
+        createdAt: Timestamp.fromDate(new Date('2023-09-01T11:30:00')),
+    },
+    {
+        id: '3',
+        title: 'Company-Wide Recycling Program',
+        author: 'Sunita Devi',
+        authorId: 'user003',
+        department: 'Operations',
+        description: 'Implementing a comprehensive recycling program with designated bins for paper, plastic, glass, and e-waste across all floors.',
+        status: 'In Progress',
+        progress: 75,
+        votes: 180,
+        comments: 22,
+        createdAt: Timestamp.fromDate(new Date('2023-11-05T14:00:00')),
+    },
+    {
+        id: '4',
+        title: 'Energy-Efficient Lighting Upgrade',
+        author: 'Anil Kumar',
+        authorId: 'user004',
+        department: 'Maintenance',
+        description: 'Replacing all conventional lighting fixtures with energy-efficient LED bulbs to lower electricity consumption.',
+        status: 'Completed',
+        progress: 100,
+        votes: 195,
+        comments: 15,
+        createdAt: Timestamp.fromDate(new Date('2023-08-20T16:45:00')),
+    },
+    {
+        id: '5',
+        title: 'Water Conservation in Restrooms',
+        author: 'Meena Kumari',
+        authorId: 'user005',
+        department: 'Human Resources',
+        description: 'Installing low-flow faucets and toilets in all restrooms to conserve water, along with awareness posters.',
+        status: 'Proposed',
+        progress: 0,
+        votes: 95,
+        comments: 7,
+        createdAt: Timestamp.fromDate(new Date('2023-11-10T10:15:00')),
+    },
+];
+
+
 export default function InitiativesPage() {
   const [user] = useAuthState(auth);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [initiativesQuery, setInitiativesQuery] = useState<any>(null);
+  const initiatives = mockInitiatives;
+  const loading = false;
+  const error = null;
 
-  useEffect(() => {
-    const setupQuery = async () => {
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        const userData = userSnap.data();
-        const initiativesRef = collection(db, "suggestions");
-
-        if (userData?.role === 'admin') {
-          // Admin sees all suggestions
-          setInitiativesQuery(query(initiativesRef, orderBy("createdAt", "desc")));
-        } else {
-          // Regular user sees only their own suggestions
-          setInitiativesQuery(query(initiativesRef, where("authorId", "==", user.uid), orderBy("createdAt", "desc")));
-        }
-      }
-    };
-    
-    if(user) {
-        setupQuery();
-    }
-  }, [user]);
-
-  const [initiatives, loading, error] = useCollectionData(initiativesQuery, {
-    idField: 'id',
-  });
 
   if (error) {
     return <div className="p-4">Error: {error.message}</div>;
@@ -76,7 +121,7 @@ export default function InitiativesPage() {
         </NewSuggestionDialog>
       </div>
 
-      {(loading || !initiativesQuery) && (
+      {loading && (
         <div className="flex justify-center mt-8">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
@@ -93,7 +138,7 @@ export default function InitiativesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">{initiative.description}</p>
+                <p className="text-muted-foreground line-clamp-2">{initiative.description}</p>
                 <div className="mt-4">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-medium text-foreground">{initiative.status}</span>
