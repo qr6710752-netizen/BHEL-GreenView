@@ -24,7 +24,7 @@ export default function GreenPuzzlePage() {
         <AlertTitle className="text-primary">Connect the Concepts!</AlertTitle>
         <AlertDescription className="text-primary/80">
           Match each eco-friendly action to its correct environmental benefit to score points. Test your knowledge and see how well you know your green initiatives!
-        </Description>
+        </AlertDescription>
       </Alert>
 
       <div className="mt-6">
