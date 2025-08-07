@@ -25,7 +25,7 @@ export default function EcoQuizPage() {
         <AlertTitle className="text-primary">Test Your Knowledge!</AlertTitle>
         <AlertDescription className="text-primary/80">
           Answer the questions below to test your sustainability knowledge and earn points. Correct answers contribute to your leaderboard score!
-        </AlertDescription>
+        </Description>
       </Alert>
 
       <div className="mt-6">
