@@ -1,7 +1,7 @@
 
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrainCircuit, Power, Puzzle } from "lucide-react";
+import { BrainCircuit, Power, Puzzle, Recycle, Hand } from "lucide-react";
 import Link from "next/link";
 
 const games = [
@@ -22,6 +22,18 @@ const games = [
         description: "Match eco-actions to their benefits!",
         href: "/games/green-puzzle",
         icon: <Puzzle className="h-8 w-8 text-primary" />,
+    },
+    {
+        title: "Waste Sorting",
+        description: "Sort waste into the correct bins!",
+        href: "/games/waste-sorting",
+        icon: <Recycle className="h-8 w-8 text-primary" />,
+    },
+    {
+        title: "Recycling Ranger",
+        description: "Click recyclable items before they disappear!",
+        href: "/games/recycling-ranger",
+        icon: <Hand className="h-8 w-8 text-primary" />,
     }
 ]
 
