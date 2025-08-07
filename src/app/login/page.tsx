@@ -10,6 +10,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   UserCredential,
+  signInAnonymously,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -31,6 +32,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -43,10 +45,10 @@ export default function LoginPage() {
       // User is new, create a document for them
       await setDoc(userRef, {
         uid: user.uid,
-        name: user.displayName || user.email?.split("@")[0] || "New User",
-        email: user.email,
+        name: user.displayName || (user.isAnonymous ? "Guest User" : "New User"),
+        email: user.email || null,
         department: "Unassigned",
-        role: "user",
+        role: user.isAnonymous ? "guest" : "user",
         points: 0,
         badges: [],
       });
@@ -114,6 +116,23 @@ export default function LoginPage() {
     }
   };
 
+  const handleGuestLogin = async () => {
+    setIsGuestLoading(true);
+    try {
+        const userCredential = await signInAnonymously(auth);
+        await createUserProfileIfNotExists(userCredential);
+        router.push("/");
+    } catch (error: any) {
+         toast({
+            variant: "destructive",
+            title: "Guest Login Failed",
+            description: error.message,
+        });
+    } finally {
+        setIsGuestLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -146,7 +165,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading || isGoogleLoading}
+                    disabled={isLoading || isGoogleLoading || isGuestLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -165,10 +184,10 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading || isGoogleLoading}
+                    disabled={isLoading || isGoogleLoading || isGuestLoading}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading || isGuestLoading}>
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
@@ -186,17 +205,28 @@ export default function LoginPage() {
                 </span>
               </div>
             </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleLogin}
-              disabled={isLoading || isGoogleLoading}
-            >
-              {isGoogleLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Login with Google
-            </Button>
+            <div className="grid grid-cols-1 gap-2">
+                <Button
+                variant="outline"
+                onClick={handleGoogleLogin}
+                disabled={isLoading || isGoogleLoading || isGuestLoading}
+                >
+                {isGoogleLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Login with Google
+                </Button>
+                 <Button
+                variant="outline"
+                onClick={handleGuestLogin}
+                disabled={isLoading || isGoogleLoading || isGuestLoading}
+                >
+                {isGuestLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Login as Guest
+                </Button>
+            </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link href="/signup" className="underline">
