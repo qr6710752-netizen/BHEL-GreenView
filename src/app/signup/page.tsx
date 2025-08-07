@@ -22,11 +22,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Leaf, Loader2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+
+const mockUsers = [
+  { name: "Priya Singh", email: "priya.singh@example.com", department: "Engineering" },
+  { name: "Ravi Sharma", email: "ravi.sharma@example.com", department: "Marketing" },
+  { name: "Anil Kumar", email: "anil.kumar@example.com", department: "Operations" },
+];
 
 export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("password123"); // Default password for mock accounts
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -50,9 +57,9 @@ export default function SignupPage() {
         uid: user.uid,
         name: name,
         email: user.email,
-        department: "Unassigned",
+        department: "Unassigned", // This will be overwritten if a mock user is selected
         role: email === "admin123@gmail.com" ? "admin" : "user",
-        points: 0,
+        points: Math.floor(Math.random() * 2000), // Assign random points for testing
         badges: [],
       });
       
@@ -72,6 +79,11 @@ export default function SignupPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleMockUserClick = (mockUser: typeof mockUsers[0]) => {
+      setName(mockUser.name);
+      setEmail(mockUser.email);
   };
 
   return (
@@ -145,6 +157,20 @@ export default function SignupPage() {
               <Link href="/login" className="underline">
                 Login
               </Link>
+            </div>
+            <Separator className="my-6" />
+            <div className="space-y-4">
+                <h3 className="text-center text-sm font-medium text-muted-foreground">Or create a mock account</h3>
+                <div className="grid grid-cols-1 gap-2">
+                    {mockUsers.map(mock => (
+                        <Button key={mock.email} variant="outline" onClick={() => handleMockUserClick(mock)}>
+                            Create {mock.name}
+                        </Button>
+                    ))}
+                </div>
+                <p className="text-xs text-center text-muted-foreground">
+                    This will fill the form. The default password is "password123".
+                </p>
             </div>
           </CardContent>
         </Card>
