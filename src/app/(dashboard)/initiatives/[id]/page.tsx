@@ -37,23 +37,32 @@ export default function InitiativeDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 flex justify-center items-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
+      </main>
     );
   }
 
-  if (error || !initiative) {
+  if (error) {
     return (
-      <div className="p-4 text-center">
-        <p className="text-destructive-foreground">
-          {error ? `Error: ${error.message}` : "Initiative not found."}
-        </p>
-        <Button onClick={() => router.back()} variant="link" className="mt-4">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 text-center">
+        <p className="text-destructive">Error: {error.message}</p>
+        <Button onClick={() => router.push('/initiatives')} variant="link" className="mt-4">
           Go Back
         </Button>
-      </div>
+      </main>
     );
+  }
+  
+  if (!initiative) {
+    return (
+       <main className="flex-1 p-4 sm:p-6 lg:p-8 text-center">
+        <p>Initiative not found.</p>
+        <Button onClick={() => router.push('/initiatives')} variant="link" className="mt-4">
+          Go Back
+        </Button>
+      </main>
+    )
   }
 
   const { title, description, author, department, status, votes, comments, createdAt } = initiative as Initiative;
