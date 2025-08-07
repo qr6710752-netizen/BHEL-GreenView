@@ -134,9 +134,9 @@ export function EnergySaverGame() {
                 <CardDescription>Choose a level to begin the challenge.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-                {Object.keys(LEVELS).map(key => (
-                    <Button key={key} onClick={() => selectLevel(key as Level)} variant="outline">
-                        {LEVELS[key as Level].name}
+                {(Object.keys(LEVELS) as Level[]).map(key => (
+                    <Button key={key} onClick={() => selectLevel(key)} variant="outline">
+                        {LEVELS[key].name}
                     </Button>
                 ))}
             </CardContent>
