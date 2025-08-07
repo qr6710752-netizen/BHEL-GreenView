@@ -58,7 +58,8 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await createUserProfileIfNotExists(userCredential);
+      // We don't need to call createUserProfileIfNotExists here for email/password
+      // because the profile is created during sign-up.
       router.push("/");
     } catch (error: any) {
        let errorMessage = "An unexpected error occurred.";
@@ -76,6 +77,9 @@ export default function LoginPage() {
              case "auth/configuration-not-found":
               errorMessage = "Firebase authentication is not configured. Please enable sign-in methods in the Firebase console.";
               break;
+            case "auth/invalid-credential":
+                errorMessage = "Incorrect email or password.";
+                break;
             default:
               errorMessage = error.message;
               break;
@@ -96,6 +100,7 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       const userCredential = await signInWithPopup(auth, provider);
+      // For Google Sign-In, we check and create a profile if it's their first time.
       await createUserProfileIfNotExists(userCredential);
       router.push("/");
     } catch (error: any) {
