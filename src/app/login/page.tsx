@@ -5,10 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
-  getAuth,
   signInWithEmailAndPassword,
   UserCredential,
-  signInAnonymously,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -29,36 +27,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-
-  const createUserProfileIfNotExists = async (userCred: UserCredential) => {
-    const user = userCred.user;
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-      // User is new, create a document for them
-      await setDoc(userRef, {
-        uid: user.uid,
-        name: user.displayName || (user.isAnonymous ? "Guest User" : "New User"),
-        email: user.email || null,
-        department: "Unassigned",
-        role: user.isAnonymous ? "guest" : "user",
-        points: 0,
-        badges: [],
-      });
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // We don't need to call createUserProfileIfNotExists here for email/password
-      // because the profile is created during sign-up.
+      await signInWithEmailAndPassword(auth, email, password);
       router.push("/");
     } catch (error: any) {
        let errorMessage = "An unexpected error occurred.";
@@ -94,29 +70,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleGuestLogin = async () => {
-    setIsGuestLoading(true);
-    try {
-        const userCredential = await signInAnonymously(auth);
-        await createUserProfileIfNotExists(userCredential);
-        router.push("/");
-    } catch (error: any) {
-        let errorMessage = "An unexpected error occurred.";
-        if (error.code === 'auth/operation-not-allowed') {
-            errorMessage = "Anonymous sign-in is not enabled. Please enable it in your Firebase console under Authentication > Sign-in method.";
-        } else {
-            errorMessage = error.message;
-        }
-         toast({
-            variant: "destructive",
-            title: "Guest Login Failed",
-            description: errorMessage,
-        });
-    } finally {
-        setIsGuestLoading(false);
-    }
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -149,7 +102,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading || isGuestLoading}
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -168,10 +121,10 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading || isGuestLoading}
+                    disabled={isLoading}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading || isGuestLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
@@ -179,28 +132,6 @@ export default function LoginPage() {
                 </Button>
               </div>
             </form>
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-                 <Button
-                variant="outline"
-                onClick={handleGuestLogin}
-                disabled={isLoading || isGuestLoading}
-                >
-                {isGuestLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Login as Guest
-                </Button>
-            </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link href="/signup" className="underline">
