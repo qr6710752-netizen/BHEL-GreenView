@@ -27,7 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
@@ -81,9 +81,15 @@ export function NewSuggestionDialog({ children, open, onOpenChange }: NewSuggest
             progress: 0,
             createdAt: serverTimestamp(),
         });
+        
+        // Award points to the user for submitting an idea
+        await updateDoc(userRef, {
+            points: increment(10)
+        });
+
         toast({
             title: 'Suggestion Submitted!',
-            description: 'Thank you for your contribution.',
+            description: 'Thank you for your contribution. You have earned 10 points!',
         });
         form.reset();
         onOpenChange(false);
