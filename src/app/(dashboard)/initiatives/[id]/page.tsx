@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { auth, db } from "@/lib/firebase";
-import { arrayUnion, doc, getDoc, increment, serverTimestamp, updateDoc } from "firebase/firestore";
+import { arrayUnion, doc, getDoc, increment, serverTimestamp, updateDoc, addDoc, collection, query, orderBy } from "firebase/firestore";
 import { ArrowLeft, Loader2, ThumbsUp, MessageCircle } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -26,7 +26,6 @@ import { Initiative } from "../page";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { collection, query, orderBy } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 
