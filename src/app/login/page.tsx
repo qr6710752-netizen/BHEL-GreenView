@@ -7,8 +7,6 @@ import { useState } from "react";
 import {
   getAuth,
   signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
   UserCredential,
   signInAnonymously,
 } from "firebase/auth";
@@ -31,7 +29,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isGuestLoading, setIsGuestLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -97,25 +94,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsGoogleLoading(true);
-    const provider = new GoogleAuthProvider();
-    try {
-      const userCredential = await signInWithPopup(auth, provider);
-      // For Google Sign-In, we check and create a profile if it's their first time.
-      await createUserProfileIfNotExists(userCredential);
-      router.push("/");
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Google Login Failed",
-        description: error.message,
-      });
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  };
-
   const handleGuestLogin = async () => {
     setIsGuestLoading(true);
     try {
@@ -165,7 +143,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading || isGoogleLoading || isGuestLoading}
+                    disabled={isLoading || isGuestLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -184,10 +162,10 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading || isGoogleLoading || isGuestLoading}
+                    disabled={isLoading || isGuestLoading}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading || isGuestLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading || isGuestLoading}>
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
@@ -206,20 +184,10 @@ export default function LoginPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 gap-2">
-                <Button
-                variant="outline"
-                onClick={handleGoogleLogin}
-                disabled={isLoading || isGoogleLoading || isGuestLoading}
-                >
-                {isGoogleLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Login with Google
-                </Button>
                  <Button
                 variant="outline"
                 onClick={handleGuestLogin}
-                disabled={isLoading || isGoogleLoading || isGuestLoading}
+                disabled={isLoading || isGuestLoading}
                 >
                 {isGuestLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
