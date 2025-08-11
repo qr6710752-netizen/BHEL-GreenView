@@ -10,45 +10,21 @@ import { Trophy, Medal, Award, Loader2 } from "lucide-react";
 import { collection, query, orderBy, limit } from "firebase/firestore";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import { db } from "@/lib/firebase";
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 
 type User = {
   id: string;
-  rank?: number;
   name: string;
   department: string;
   points: number;
-  avatar?: string; // URL or initials
+  avatar?: string;
 };
 
 type Team = {
     id: string;
-    rank?: number;
     name:string;
     points: number;
 };
-
-const mockIndividualLeaderboard: User[] = [
-    { id: '1', name: 'Priya Singh', department: 'Engineering', points: 3250, avatar: 'PS' },
-    { id: '2', name: 'Ravi Sharma', department: 'Marketing', points: 2980, avatar: 'RS' },
-    { id: '3', name: 'Anil Kumar', department: 'Operations', points: 2750, avatar: 'AK' },
-    { id: '4', name: 'Sunita Devi', department: 'Human Resources', points: 2600, avatar: 'SD' },
-    { id: '5', name: 'Vijay Rathod', department: 'Facilities', points: 2450, avatar: 'VR' },
-    { id: '6', name: 'Meena Kumari', department: 'Engineering', points: 2300, avatar: 'MK' },
-    { id: '7', name: 'Sanjay Verma', department: 'IT', points: 2150, avatar: 'SV' },
-    { id: '8', name: 'Pooja Reddy', department: 'Marketing', points: 1980, avatar: 'PR' },
-    { id: '9', name: 'Amit Patel', department: 'Operations', points: 1800, avatar: 'AP' },
-    { id: '10', name: 'Deepika Rao', department: 'Facilities', points: 1650, avatar: 'DR' },
-];
-
-const mockTeamLeaderboard: Team[] = [
-    { id: 't1', name: 'Eco Warriors', points: 12500 },
-    { id: 't2', name: 'Green Giants', points: 11200 },
-    { id: 't3', name: 'Sustainability Squad', points: 9800 },
-    { id: 't4', name: 'Power Savers', points: 8500 },
-    { id: 't5', name: 'Waste Watchers', points: 7200 },
-];
-
 
 const RankIcon = ({ rank }: { rank: number }) => {
   if (rank === 1) return <Trophy className="w-5 h-5 text-yellow-500" />;
@@ -58,18 +34,26 @@ const RankIcon = ({ rank }: { rank: number }) => {
 };
 
 export default function LeaderboardPage() {
-    const [individualLeaderboard, setIndividualLeaderboard] = useState<User[]>([]);
-    const [teamLeaderboard, setTeamLeaderboard] = useState<Team[]>([]);
-    const [loading, setLoading] = useState(true);
+    const usersQuery = query(collection(db, "users"), orderBy("points", "desc"), limit(20));
+    const [users, loading, error] = useCollectionData(usersQuery, { idField: 'id' });
 
-    useEffect(() => {
-        // Simulate fetching data
-        setTimeout(() => {
-            setIndividualLeaderboard(mockIndividualLeaderboard);
-            setTeamLeaderboard(mockTeamLeaderboard);
-            setLoading(false);
-        }, 1000);
-    }, []);
+    const teamLeaderboard = useMemo(() => {
+        if (!users) return [];
+        const teams: { [key: string]: number } = {};
+        users.forEach(user => {
+            const typedUser = user as User;
+            if (typedUser.department) {
+                if (!teams[typedUser.department]) {
+                    teams[typedUser.department] = 0;
+                }
+                teams[typedUser.department] += typedUser.points;
+            }
+        });
+
+        return Object.entries(teams)
+            .map(([name, points]) => ({ id: name, name, points }))
+            .sort((a, b) => b.points - a.points);
+    }, [users]);
     
     const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('');
 
@@ -84,8 +68,9 @@ export default function LeaderboardPage() {
         </div>
       )}
 
+      {error && <p className="text-destructive">Error: {error.message}</p>}
       
-      {!loading && (
+      {!loading && users && (
         <Tabs defaultValue="individual" className="mt-6">
             <TabsList className="grid w-full grid-cols-2 md:w-1/2 lg:w-1/3">
             <TabsTrigger value="individual">Individual</TabsTrigger>
@@ -107,7 +92,7 @@ export default function LeaderboardPage() {
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {individualLeaderboard.map((user, index) => (
+                    {(users as User[]).map((user, index) => (
                         <TableRow key={user.id}>
                         <TableCell className="font-medium">
                             <div className="flex items-center gap-2">
@@ -117,7 +102,7 @@ export default function LeaderboardPage() {
                         <TableCell>
                             <div className="flex items-center gap-3">
                             <Avatar>
-                                <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="profile picture" />
+                                <AvatarImage src={user.avatar || `https://placehold.co/40x40.png`} data-ai-hint="profile picture" />
                                 <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                             </Avatar>
                             <span className="font-medium">{user.name}</span>
@@ -176,3 +161,4 @@ export default function LeaderboardPage() {
     </main>
   );
 }
+
